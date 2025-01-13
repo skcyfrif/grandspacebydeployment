@@ -4,9 +4,9 @@ pipeline {
     environment {
         REGISTRY = "docker.io"
         IMAGE_NAME_BACKEND = "grandspace-fullstackk"
-        DOCKER_CREDENTIALS_ID = 'cyfdoc'  // Update this to your Docker Hub credentials ID in Jenkins
+        DOCKER_CREDENTIALS_ID = 'cyfdoc' // Docker Hub credentials ID
         BUILD_TAG = "${env.BUILD_NUMBER}"
-        SPRING_DATASOURCE_URL = "jdbc:mysql://172.22.0.2:3306/grandspace?createDatabaseIfNotExist=true" // Updated hostname to 'db' as per Docker network
+        SPRING_DATASOURCE_URL = "jdbc:mysql://172.22.0.2:3306/grandspace?createDatabaseIfNotExist=true"
         SPRING_DATASOURCE_USERNAME = "root"
         SPRING_DATASOURCE_PASSWORD = "root"
         DOCKER_NETWORK = "grandspace_networkk"
@@ -25,6 +25,7 @@ pipeline {
                 script {
                     echo "Cloning repository..."
                     checkout scm
+                    sh "ls -l" // Debug: List files to verify checkout
                 }
             }
         }
@@ -45,14 +46,13 @@ pipeline {
                 script {
                     echo "Starting MySQL container..."
                     sh """
-                    # Check if the container is running or exists
                     if docker ps --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
                         echo "Container ${DB_CONTAINER} is already running."
                     elif docker ps -a --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
                         echo "Container ${DB_CONTAINER} exists but is stopped. Restarting it..."
                         docker start ${DB_CONTAINER}
                     else
-                        echo "Container ${DB_CONTAINER} does not exist. Creating and starting a new container..."
+                        echo "Creating and starting a new MySQL container..."
                         docker run -d --name ${DB_CONTAINER} \
                             --network ${DOCKER_NETWORK} \
                             -e MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
@@ -85,7 +85,7 @@ pipeline {
                 script {
                     echo "Logging in to Docker Hub..."
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        echo 'Docker login successful'
+                        echo "Docker login successful"
                     }
                 }
             }
@@ -93,14 +93,18 @@ pipeline {
 
         stage('Build GrandSpaceProject') {
             steps {
-                dir('GrandSpaceProject') {
-                    script {
-                        echo "Building GrandSpaceProject..."
-                        sh 'mvn clean install'
-                        echo "Building Docker image for GrandSpaceProject..."
-                        sh """
-                        docker build -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
-                        """
+                script {
+                    echo "Navigating to the correct directory..."
+                    sh "ls -l" // Debug: Verify current directory and files
+                    dir('GrandSpaceProject') {
+                        script {
+                            echo "Building GrandSpaceProject..."
+                            sh 'mvn clean install -X' // Debug: Enable verbose logging for Maven
+                            echo "Building Docker image for GrandSpaceProject..."
+                            sh """
+                            docker build -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
+                            """
+                        }
                     }
                 }
             }
@@ -109,9 +113,8 @@ pipeline {
         stage('Push Images to Docker Hub') {
             steps {
                 script {
-                    echo "Pushing images to Docker Hub..."
+                    echo "Pushing Docker images to Docker Hub..."
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        // Tagging and pushing backend image
                         sh """
                         docker tag ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} ${REGISTRY}/cyfrifprotech/${IMAGE_NAME_BACKEND}:${BUILD_TAG}
                         docker push ${REGISTRY}/cyfrifprotech/${IMAGE_NAME_BACKEND}:${BUILD_TAG}
@@ -126,11 +129,9 @@ pipeline {
                 script {
                     echo "Updating GrandSpaceProject container..."
                     sh """
-                    # Check if the backend container exists and remove it if necessary
                     docker ps -a -q --filter "name=${BACKEND_CONTAINER}" | grep -q . && \
                     docker rm -f ${BACKEND_CONTAINER} || echo "No existing backend container to remove."
 
-                    # Run a new backend container
                     docker run -d --name ${BACKEND_CONTAINER} \
                         --network ${DOCKER_NETWORK} \
                         -e SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
@@ -140,6 +141,19 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+        success {
+            echo "Build and deployment succeeded!"
+        }
+        failure {
+            echo "Build or deployment failed. Check logs for details."
         }
     }
 }
