@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"
-        IMAGE_NAME_BACKEND = "grandspace-fullstack"
+        IMAGE_NAME_BACKEND = "cyfdoc/grandspace-fullstack"
         DOCKER_CREDENTIALS_ID = 'cyfdoc' // Docker Hub credentials ID
         BUILD_TAG = "${env.BUILD_NUMBER}"
         SPRING_DATASOURCE_URL = "jdbc:mysql://db:3306/grandspace?createDatabaseIfNotExist=true"
