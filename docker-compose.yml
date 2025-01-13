@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:5.7
@@ -11,7 +9,7 @@ services:
     ports:
       - "3709:3306"
     networks:
-      - grandspace_network1
+      - grand_network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -23,7 +21,7 @@ services:
     ports:
       - "8088:80"
     networks:
-      - grandspace_network1
+      - grand_network
 
   app:
     build:
@@ -38,7 +36,8 @@ services:
     depends_on:
       - db
     networks:
-      - grandspace_network1
+      - grand_network
 
 networks:
-  grandspace_network:
+  grand_network:
+    driver: bridge
