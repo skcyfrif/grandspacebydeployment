@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: mysql:5.7
-    container_name: grandspace-dbb
+    container_name: grandspaceee-dbbq
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -11,11 +11,11 @@ services:
     ports:
       - "3709:3306"
     networks:
-      - grandspace_network
+      - grandspace_network1
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: grandspace-phpmyadminn
+    container_name: grandspaceee-phpmyadminnq
     restart: always
     environment:
       PMA_HOST: db
@@ -23,7 +23,7 @@ services:
     ports:
       - "8088:80"
     networks:
-      - grandspace_network
+      - grandspace_network1
 
   app:
     build:
@@ -38,7 +38,7 @@ services:
     depends_on:
       - db
     networks:
-      - grandspace_network
+      - grandspace_network1
 
 networks:
   grandspace_network:
