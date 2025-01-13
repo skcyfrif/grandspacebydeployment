@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"
-        IMAGE_NAME_BACKEND= "grandspace-fullstackk"
-        DOCKER_CREDENTIALS_ID = 'cyfdoc'  // Update this to your Docker Hub credentials ID in Jenkinsss
+        IMAGE_NAME_BACKEND = "grandspace-fullstackk"
+        DOCKER_CREDENTIALS_ID = 'cyfdoc'  // Update this to your Docker Hub credentials ID in Jenkins
         BUILD_TAG = "${env.BUILD_NUMBER}"
         SPRING_DATASOURCE_URL = "jdbc:mysql://172.22.0.2:3306/grandspace?createDatabaseIfNotExist=true" // Updated hostname to 'db' as per Docker network
         SPRING_DATASOURCE_USERNAME = "root"
@@ -14,8 +14,6 @@ pipeline {
         PHPMYADMIN_CONTAINER = "grandspace-phpmyadminn"
         BACKEND_CONTAINER = "grandspace-containerr"
     }
-
-}
 
     tools {
         maven 'maven'
@@ -30,7 +28,6 @@ pipeline {
                 }
             }
         }
-    }
 
         stage('Create Docker Network') {
             steps {
@@ -44,28 +41,28 @@ pipeline {
         }
 
         stage('Start MySQL') {
-    steps {
-        script {
-            echo "Starting MySQL container..."
-            sh """
-            # Check if the container is running or exists
-            if docker ps --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
-                echo "Container ${DB_CONTAINER} is already running."
-            elif docker ps -a --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
-                echo "Container ${DB_CONTAINER} exists but is stopped. Restarting it..."
-                docker start ${DB_CONTAINER}
-            else
-                echo "Container ${DB_CONTAINER} does not exist. Creating and starting a new container..."
-                docker run -d --name ${DB_CONTAINER} \
-                    --network ${DOCKER_NETWORK} \
-                    -e MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
-                    -e MYSQL_DATABASE=grandspace \
-                    -p 3408:3306 mysql:5.7
-            fi
-            """
+            steps {
+                script {
+                    echo "Starting MySQL container..."
+                    sh """
+                    # Check if the container is running or exists
+                    if docker ps --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
+                        echo "Container ${DB_CONTAINER} is already running."
+                    elif docker ps -a --filter "name=${DB_CONTAINER}" | grep -q ${DB_CONTAINER}; then
+                        echo "Container ${DB_CONTAINER} exists but is stopped. Restarting it..."
+                        docker start ${DB_CONTAINER}
+                    else
+                        echo "Container ${DB_CONTAINER} does not exist. Creating and starting a new container..."
+                        docker run -d --name ${DB_CONTAINER} \
+                            --network ${DOCKER_NETWORK} \
+                            -e MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
+                            -e MYSQL_DATABASE=grandspace \
+                            -p 3408:3306 mysql:5.7
+                    fi
+                    """
+                }
+            }
         }
-    }
-}
 
         stage('Start phpMyAdmin') {
             steps {
@@ -125,22 +122,24 @@ pipeline {
         }
 
         stage('Deploy Grandspace') {
-    steps {
-        script {
-            echo "Updating GrandSpaceProject container..."
-            sh """
-            # Check if the backend container exists and remove it if necessary
-            docker ps -a -q --filter "name=${BACKEND_CONTAINER}" | grep -q . && \
-            docker rm -f ${BACKEND_CONTAINER} || echo "No existing backend container to remove."
+            steps {
+                script {
+                    echo "Updating GrandSpaceProject container..."
+                    sh """
+                    # Check if the backend container exists and remove it if necessary
+                    docker ps -a -q --filter "name=${BACKEND_CONTAINER}" | grep -q . && \
+                    docker rm -f ${BACKEND_CONTAINER} || echo "No existing backend container to remove."
 
-            # Run a new backend container
-            docker run -d --name ${BACKEND_CONTAINER} \
-                --network ${DOCKER_NETWORK} \
-                -e SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
-                -e SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
-                -e SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
-                -p 9080:9090 ${REGISTRY}/cyfrifprotech/${IMAGE_NAME_BACKEND}:${BUILD_TAG}
-            """
+                    # Run a new backend container
+                    docker run -d --name ${BACKEND_CONTAINER} \
+                        --network ${DOCKER_NETWORK} \
+                        -e SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
+                        -e SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
+                        -e SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
+                        -p 9066:9555 ${REGISTRY}/cyfrifprotech/${IMAGE_NAME_BACKEND}:${BUILD_TAG}
+                    """
+                }
+            }
         }
     }
 }
