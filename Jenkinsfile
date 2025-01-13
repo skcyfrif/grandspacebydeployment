@@ -15,6 +15,8 @@ pipeline {
         BACKEND_CONTAINER = "grandspace-containerr"
     }
 
+}
+
     tools {
         maven 'maven'
     }
