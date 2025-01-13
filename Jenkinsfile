@@ -3,16 +3,16 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"
-        IMAGE_NAME_BACKEND= "grandspace-fullstack"
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  // Update this to your Docker Hub credentials ID in Jenkins
+        IMAGE_NAME_BACKEND= "grandspace-fullstackk"
+        DOCKER_CREDENTIALS_ID = 'cyfdoc'  // Update this to your Docker Hub credentials ID in Jenkins
         BUILD_TAG = "${env.BUILD_NUMBER}"
         SPRING_DATASOURCE_URL = "jdbc:mysql://172.22.0.2:3306/grandspace?createDatabaseIfNotExist=true" // Updated hostname to 'db' as per Docker network
         SPRING_DATASOURCE_USERNAME = "root"
         SPRING_DATASOURCE_PASSWORD = "root"
-        DOCKER_NETWORK = "grandspace_network"
-        DB_CONTAINER = "grandspace-db"
-        PHPMYADMIN_CONTAINER = "grandspace-phpmyadmin"
-        BACKEND_CONTAINER = "grandspace-container"
+        DOCKER_NETWORK = "grandspace_networkk"
+        DB_CONTAINER = "grandspace-dbb"
+        PHPMYADMIN_CONTAINER = "grandspace-phpmyadminn"
+        BACKEND_CONTAINER = "grandspace-containerr"
     }
 
     tools {
@@ -28,6 +28,7 @@ pipeline {
                 }
             }
         }
+    }
 
         stage('Create Docker Network') {
             steps {
@@ -57,7 +58,7 @@ pipeline {
                     --network ${DOCKER_NETWORK} \
                     -e MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
                     -e MYSQL_DATABASE=grandspace \
-                    -p 3308:3306 mysql:5.7
+                    -p 3408:3306 mysql:5.7
             fi
             """
         }
@@ -74,7 +75,7 @@ pipeline {
                         --network ${DOCKER_NETWORK} \
                         -e PMA_HOST=${DB_CONTAINER} \
                         -e MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
-                        -p 8182:80 phpmyadmin/phpmyadmin
+                        -p 8568:80 phpmyadmin/phpmyadmin
                     """
                 }
             }
@@ -138,20 +139,6 @@ pipeline {
                 -e SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
                 -p 9080:9090 ${REGISTRY}/cyfrifprotech/${IMAGE_NAME_BACKEND}:${BUILD_TAG}
             """
-        }
-    }
-}
-
-        stage('Cleanup Unused Resources') {
-            steps {
-                script {
-                    echo "Cleaning up unused Docker resources..."
-                    sh """
-                    docker image prune -f
-                    docker container prune -f
-                    """
-                }
-            }
         }
     }
 }
