@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: mysql:5.7
@@ -7,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: grandspace
     ports:
-      - "3709:3306"
+      - "3709:3306"  # You can access MySQL from the host machine using localhost:3709
     networks:
       - grand_network
 
@@ -16,25 +18,25 @@ services:
     container_name: grandspaceee-phpmyadminnq
     restart: always
     environment:
-      PMA_HOST: db
+      PMA_HOST: db  # phpMyAdmin will connect to the 'db' service
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "8088:80"
+      - "8088:80"  # Access phpMyAdmin via localhost:8088
     networks:
       - grand_network
 
   app:
     build:
-      context: .
+      context: .  # Assuming you have a Dockerfile to build the Spring Boot app
     container_name: grandspace-app
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/grandspace?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
     ports:
-      - "9555:9555"
+      - "9555:9555"  # Expose port 9555 for your Spring Boot app
     depends_on:
-      - db
+      - db  # Ensure the 'db' service is started before the app
     networks:
       - grand_network
 
