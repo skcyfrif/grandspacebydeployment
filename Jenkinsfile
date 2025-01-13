@@ -25,7 +25,30 @@ pipeline {
                 script {
                     echo "Cloning repository..."
                     checkout scm
-                    sh "ls -l" // Debug: List files to verify checkout
+                    echo "Listing files in the workspace root for debugging..."
+                    sh "ls -l"
+                    echo "Checking if GrandSpaceProject directory exists..."
+                    sh "ls -l GrandSpaceProject || echo 'GrandSpaceProject directory not found!'"
+                }
+            }
+        }
+
+        stage('Build GrandSpaceProject') {
+            steps {
+                script {
+                    echo "Navigating to the project directory..."
+                    sh "ls -l" // Debugging: Verify files in the workspace root
+                    dir('GrandSpaceProject') {
+                        script {
+                            echo "Building GrandSpaceProject..."
+                            sh "ls -l" // Debugging: Verify presence of pom.xml
+                            sh 'mvn clean install -X' // Verbose Maven build logs
+                            echo "Building Docker image for GrandSpaceProject..."
+                            sh """
+                            docker build -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
+                            """
+                        }
+                    }
                 }
             }
         }
@@ -86,25 +109,6 @@ pipeline {
                     echo "Logging in to Docker Hub..."
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
                         echo "Docker login successful"
-                    }
-                }
-            }
-        }
-
-        stage('Build GrandSpaceProject') {
-            steps {
-                script {
-                    echo "Navigating to the correct directory..."
-                    sh "ls -l" // Debug: Verify current directory and files
-                    dir('GrandSpaceProject') {
-                        script {
-                            echo "Building GrandSpaceProject..."
-                            sh 'mvn clean install -X' // Debug: Enable verbose logging for Maven
-                            echo "Building Docker image for GrandSpaceProject..."
-                            sh """
-                            docker build -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
-                            """
-                        }
                     }
                 }
             }
