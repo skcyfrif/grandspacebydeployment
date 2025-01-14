@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: grandspace-app
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/grandspace?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://172.22.0.2:3306/grandspace?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
     ports:
