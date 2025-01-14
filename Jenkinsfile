@@ -42,7 +42,7 @@ pipeline {
                 script {
                     echo "Building Docker image..."
                     sh """
-                    docker build -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
+                    docker build --network ${DOCKER_NETWORK} -t ${REGISTRY}/${IMAGE_NAME_BACKEND}:${BUILD_TAG} .
                     """
                 }
             }
@@ -67,7 +67,7 @@ pipeline {
                     echo "Deploying the application using Docker Compose..."
                     sh """
                     docker-compose down
-                    docker-compose up -d                
+                    docker-compose up -d --build
                     """
                 }
             }
