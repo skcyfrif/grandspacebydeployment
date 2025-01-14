@@ -67,7 +67,8 @@ pipeline {
                     echo "Deploying the application using Docker Compose..."
                     sh """
                     docker-compose down
-                    docker-compose up -d                
+                    docker-compose up -d
+                    docker-compose down                
                     """
                 }
             }
