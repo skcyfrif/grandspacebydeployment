@@ -30,7 +30,7 @@ services:
       context: .  # Assuming you have a Dockerfile to build the Spring Boot app
     container_name: grandspace-app
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/grandspace?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/grandspace
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
     ports:
