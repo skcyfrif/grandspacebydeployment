@@ -35,7 +35,7 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
     ports:
-      - "9595:9555"
+      - "9595:9595"
     depends_on:
       - db
     networks:
